@@ -1,13 +1,14 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <Ethernet.h>
-#include <ServerComm.h>
+#include "ServerComm.h"
+#include <MsTimer2.h>
  
 #define DEVICE (0x53)    //ADXL345 device address
 #define TO_READ (6)        //num of bytes we are going to read each time (two bytes for each axis)
  
 byte buff[TO_READ] ;    //6 bytes buffer for saving data read from the device
-char str[512];                      //string buffer to transform data before sending it to the serial port
+//char str[512];                      //string buffer to transform data before sending it to the serial port
 
 const int numReading1 = 10; //LTA
 const int numReading2 = 8; //STA
@@ -21,18 +22,39 @@ int total2 = 0;
 int average = 0;
 
 //Pablo Test
-byte mac[] = { 0xBE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+byte mac[] = { 0xCE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 IPAddress server(10, 0, 42, 8);
 int port = 4322;
 
-ServerComm comm(1L,server,port,mac);
+ServerComm comm(3L);
+
+void alive()
+{
+    Ethernet.maintain();
+    comm.SendMessage(ServerComm::ALIVE);
+}
 
 void setup()
 {
   Wire.begin();        // join i2c bus (address optional for master)
   Serial.begin(9600);  // start serial for output
-  Serial.println("Demo started, initializing sensors"); 
-  Serial.println("Sensors have been initialized");
+
+  Serial.println("Demo started");
+
+  if(comm.Begin(mac))
+  {
+    Serial.println("DHCP connection success");
+  }
+  
+  Serial.println("Connecting ...");
+  while(!comm.StartComm(server,port))
+  {
+    delay(1000);
+    Serial.println("Failed. Trying again ...");
+  }
+  Serial.println("Connection Established");
+  
+  Serial.println("Initializing sensors"); 
   for (int thisReading1 = 0; thisReading1 < numReading1; thisReading1++) {
     reading1[thisReading1] = 0;
   }
@@ -45,14 +67,11 @@ void setup()
   writeTo(DEVICE, 0x2D, 16);
   writeTo(DEVICE, 0x2D, 8);
 
-  if(comm.Start())
-  {
-    Serial.println("Connection Established");
-  }
-  else
-  {
-    Serial.println("Connection Failed");
-  }
+  Serial.println("Sensors have been initialized");
+
+  // Set timer to maintain the connection with the server
+  MsTimer2::set(60000, alive); // 60s period
+  MsTimer2::start();
 }
  
 void loop()
@@ -70,7 +89,7 @@ void loop()
   z = (((int)buff[5]) << 8) | buff[4];
  
   //we send the x y z values as a string to the serial port
-  sprintf(str, "%d, %d, %d", x, y, z);
+  //sprintf(str, "%d, %d, %d", x, y, z);
   average = abs((x+y/2));
   
   //LTA:

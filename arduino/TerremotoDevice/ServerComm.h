@@ -27,17 +27,21 @@ public:
 	/// Constructor of the class
 	///</summary>
 	/// <param name="_id">The unique id of this device.</param>
-	/// <param name="_deviceIp">The ip of this device.</param>
-	/// <param name="_serverIp">The ip of the server.</param>
-	/// <param name="_port">The port used to communicate information to the server.</param>
+	ServerComm(unsigned long _id) : id(_id) {}
+	
+	///<summary>
+	/// Init the ethernet communications
+	///</summary>
 	/// <param name="_macAddress">The mac address of the ethernet device.</param>
-	ServerComm(unsigned long _id, IPAddress _serverIp, int _port, byte* _macAddress) : id(_id), serverIp(_serverIp), port(_port), macAddress(_macAddress) {}
+	bool Begin(byte* macAddress);
 	
 	///<summary>
 	/// Start the communications with the server
 	///</summary>
+	/// <param name="_serverIp">The ip of the server.</param>
+	/// <param name="_port">The port used to communicate information to the server.</param>
 	/// <returns>If the connection was establish</returns>
-	bool Start();
+	bool StartComm(IPAddress server, int port);
 	
 	///<summary>
 	/// Send a message to the server
@@ -56,21 +60,6 @@ public:
 	/// The unique id of this device
 	///</summary>
 	unsigned long id;
-	
-	///<summary>
-	/// The ip of the server
-	///</summary>
-	IPAddress serverIp;
-	
-	///<summary>
-	/// The port used in the server
-	///</summary>	
-	int port;
-	
-	///<summary>
-	/// The mac address of this device
-	///</summary>
-	byte* macAddress;
 	
 	///<summary>
 	/// The key used to encryp and decrypt a message

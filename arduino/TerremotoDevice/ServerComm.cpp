@@ -3,16 +3,21 @@
 
 const unsigned long ServerComm::key[4] = { 56394, 12134315, 74, 156 };
 
-bool ServerComm::Start()
+bool ServerComm::Begin(byte* macAddress)
 {
 	// start the Ethernet connection:
-	Ethernet.begin(macAddress);
+	int result = Ethernet.begin(macAddress);
 
 	// give the Ethernet shield a second to initialize:
 	delay(1000);
+	
+	return result == 1;
+}
 
+bool ServerComm::StartComm(IPAddress server, int port)
+{
 	// if you get a connection, report back via serial:
-	if (client.connect(serverIp, port)) {
+	if (client.connect(server, port)) {
 		return true;
 	} else {
 		// if you didn't get a connection to the server:

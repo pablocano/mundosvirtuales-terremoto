@@ -46,12 +46,13 @@ typedef STRUCT_PACKET HeaderPacketComm
 	uint16_t  version;		/* Version of packet. */
 	uint8_t   m_command;	/* Command */
 	uint8_t   m_flags;		/* Flags */
+	uint32_t  m_idDevice;	/* Identificator for Response Packet. */
 	uint32_t  m_idResponse;	/* Identificator for Response Packet. */
 
 	/// <summary>
 	/// Constructor
 	/// </summary>
-	HeaderPacketComm() : version(VERSION_PACKET), m_command(Command::NONE), m_flags(0), m_idResponse(0) {};
+	HeaderPacketComm() : version(VERSION_PACKET), m_command(Command::NONE), m_flags(0), m_idDevice(0), m_idResponse(0) {};
 
 	/// <summary>
 	/// Validate header.

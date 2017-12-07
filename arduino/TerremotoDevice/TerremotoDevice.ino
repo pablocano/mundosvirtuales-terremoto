@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <Ethernet.h>
-#include "ServerComm.h"
+#include <ServerComm.h>
 #include <MsTimer2.h>
  
 #define DEVICE (0x53)    //ADXL345 device address
@@ -21,7 +21,6 @@ int total1 = 0;
 int total2 = 0;
 int average = 0;
 
-//Pablo Test
 byte mac[] = { 0xCE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 IPAddress server(10, 0, 42, 8);
 int port = 4322;
@@ -32,6 +31,7 @@ void alive()
 {
     Ethernet.maintain();
     comm.SendMessage(ServerComm::ALIVE);
+    Serial.println("Sending alive");
 }
 
 void setup()

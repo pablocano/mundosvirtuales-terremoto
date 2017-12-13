@@ -22,7 +22,6 @@ int total2 = 0;
 int average = 0;
 
 byte mac[] = { 0xCE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-IPAddress server(10, 0, 42, 8);
 int port = 4322;
 
 ServerComm comm(3L);
@@ -47,7 +46,7 @@ void setup()
   }
   
   Serial.println("Connecting ...");
-  while(!comm.StartComm(server,port))
+  while(!comm.StartComm("plant.mundos-virtuales.com",port))
   {
     delay(1000);
     Serial.println("Failed. Trying again ...");

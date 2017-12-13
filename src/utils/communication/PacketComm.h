@@ -41,7 +41,7 @@ typedef enum _Command
 /// <summary>
 /// Header of Communication Packet.
 /// </summary>
-typedef STRUCT_PACKET HeaderPacketComm
+STRUCT_PACKET HeaderPacketComm
 {
 	uint16_t  version;		/* Version of packet. */
 	uint8_t   m_command;	/* Command */

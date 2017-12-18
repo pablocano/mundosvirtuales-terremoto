@@ -3,6 +3,7 @@
 #include "PacketComm.h"
 #include "../Queue.h"
 #include "../network/TcpComm.h"
+#include "../ClientID.h"
 
 /// <summary>
 /// Abstract class allows to response packet.
@@ -25,10 +26,11 @@ public:
 	/// <summary>
 	/// Automatically respond incoming packets, if a packet respond to a request packet, the packet is placed in a packet queue.
 	/// </summary>
+	/// <param name="clientID">Identification of client.</param>
 	/// <param name="packet">Incoming packet.</param>
 	/// <param name="tcpComm">Socket communication.</param>
 	/// <returns>Returns response packet for the incoming packet.</returns>
-	virtual PacketComm process_packet(PacketComm packet, SocketClientTcp& tcpComm) = 0;
+	virtual PacketComm process_packet(const ClientID clientID, PacketComm packet, SocketClientTcp& tcpComm) = 0;
 
 	/// <summary>
 	/// Get response packet for specific request packet. This funciton looks for response in incoming packet queue.

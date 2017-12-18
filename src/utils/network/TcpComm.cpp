@@ -49,6 +49,22 @@ public:
 
 #endif
 
+void SocketTCP::setBlock(bool isBlock)
+{
+	m_isNonBlock = !isBlock;
+
+	if (m_isNonBlock)
+		NON_BLOCK(m_socket); // switch socket to nonblocking
+}
+
+void SocketTCP::setTimeout(int usec)
+{
+	struct timeval tv;
+	tv.tv_usec = usec;
+
+	setsockopt(m_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
+}
+
 SocketServerTCP::SocketServerTCP(int port) : SocketTCP()
 {
 	m_address.sin_family = AF_INET;
@@ -63,8 +79,7 @@ SocketServerTCP::SocketServerTCP(int port) : SocketTCP()
 			throw ExceptionNetwork("Problem Binding");
 		if (listenSocket())
 			throw ExceptionNetwork("Problem Listening");
-		if (m_isNonBlock)
-			NON_BLOCK(m_socket); // switch socket to nonblocking
+		setBlock(true);
 	}
 }
 

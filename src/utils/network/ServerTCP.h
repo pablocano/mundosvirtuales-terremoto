@@ -13,8 +13,9 @@ class ServerTCP : public Runnable
 {
 protected:
 	SocketServerTCP* m_lpTcpServer; /* Socket server. */
-	std::shared_ptr<ResponsePacketServer> m_lpServerPlant; /* Pointer to class responding to messages (packet).  */
+	ResponsePacketServer* m_lpServerResponse; /* Pointer to class responding to messages (packet).  */
 	Queue<std::shared_ptr<ClientTCP>> m_queueClients; /* Queue of active clients (where each client is attended with a thread). */
+	int m_port; /* Port TCP. */
 
 	void run(); /* Implement virtual function. */
 
@@ -28,12 +29,17 @@ public:
 	/// <summary>
 	/// Constructor.
 	/// </summary>
-	ServerTCP(ResponsePacketServer* lpServer = nullptr);
+	ServerTCP(ResponsePacketServer* lpServer = nullptr, int port = PORT_SERVERPLANT);
 
 	/// <summary>
 	/// Destructor.
 	/// </summary>
 	~ServerTCP();
+
+	/// <summary>
+	/// Stops Server (close all clients).
+	/// </summary>
+	void stop();
 
 	/// <summary>
 	/// Determine if exist clients.
@@ -45,4 +51,13 @@ public:
 	/// Close all active clients.
 	/// </summary>
 	void close_all_clients();
+
+	const Queue<std::shared_ptr<ClientTCP>>& getQueueClients() const
+	{
+		return m_queueClients;
+	}
+
+protected:
+
+	std::shared_ptr<ClientTCP> addClient(int socketClient);
 };

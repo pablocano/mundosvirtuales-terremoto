@@ -1,6 +1,6 @@
 #pragma once
 
-#include <list>
+#include <vector>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -11,8 +11,8 @@
 template <typename T> class Queue
 {
 protected:
-	std::list<T> m_queue; /* Queue where the data is stored. */
-	std::mutex m_mutex; /* Mutex for synchronized access to queue. */
+	std::vector<T> m_queue; /* Queue where the data is stored. */
+	mutable std::mutex m_mutex; /* Mutex for synchronized access to queue. */
 	std::condition_variable m_condv; /* Condition for synchronized access to queue. */
 
 public:
@@ -45,7 +45,22 @@ public:
 	/// Size of queue.
 	/// </summary>
 	/// <returns>Returns amount of items in queue.</returns>
-	int size();
+	int size() const;
+
+	T& operator[](int index)
+	{
+		std::unique_lock<std::mutex> lock(m_mutex);
+		T t = m_queue[index];
+
+		return t;
+	}
+
+	const T& at(int index) const
+	{
+		std::unique_lock<std::mutex> lock(m_mutex);
+
+		return  m_queue[index];
+	}
 };
 
 template<typename T>
@@ -69,8 +84,8 @@ T Queue<T>::remove()
 	{
 		m_condv.wait(lock);
 	}
-	T item = m_queue.front();
-	m_queue.pop_front();
+	T item = m_queue.back();
+	m_queue.pop_back();
 	return item;
 }
 
@@ -82,12 +97,12 @@ std::shared_ptr<T> Queue<T>::remove(T item)
 	{
 		m_condv.wait(lock); // waiting until recover mutex
 	}
-	std::list<T>::iterator it = std::find(m_queue.begin(), m_queue.end(), item);
+	std::vector<T>::iterator it = std::find(m_queue.begin(), m_queue.end(), item);
 
 	if (it != m_queue.end())
 	{
 		T t(*it);
-		m_queue.remove(*it);
+		m_queue.erase(it);
 		return std::make_shared<T>(t);
 	}
 	else
@@ -97,8 +112,8 @@ std::shared_ptr<T> Queue<T>::remove(T item)
 }
 
 template<typename T>
-int Queue<T>::size()
+int Queue<T>::size() const
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
-	return (int)m_queue.size();
+	return (int) m_queue.size();
 }

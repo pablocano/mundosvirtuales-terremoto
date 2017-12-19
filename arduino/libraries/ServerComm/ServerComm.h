@@ -52,7 +52,7 @@ public:
 	/// <param name="_serverIp">The ip of the server.</param>
 	/// <param name="_port">The port used to communicate information to the server.</param>
 	/// <returns>If the connection was establish</returns>
-	bool StartComm(IPAddress server, int port);
+	bool StartComm(char* server, int port);
 	
 	///<summary>
 	/// Send a message to the server

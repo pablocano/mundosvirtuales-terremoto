@@ -24,7 +24,7 @@ int average = 0;
 byte mac[] = { 0xCE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 int port = 4322;
 
-ServerComm comm(3L);
+ServerComm comm(2L);
 
 void alive()
 {
@@ -131,9 +131,11 @@ void loop()
     }
     else
     {
-      Serial.println("Message not sent");
+      Serial.println("Message not sent. Reseting ...");
+      delay(1000);
+      software_Reset();
     }
-    delay(5000);
+    delay(1000);
     //software_Reset();
   } 
   else {

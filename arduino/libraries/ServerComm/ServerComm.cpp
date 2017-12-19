@@ -34,7 +34,7 @@ bool ServerComm::SendMessage(MessageType type, float* ratio)
 	// Encrypt the message
 	Cryptography::encrypt((unsigned long*) &outMessage, 4, key);
   
-	// If there is a connection avaliable, send the message
+	// If there is a connection available, send the message
 	if(client.connected())
 	{
 		return client.write((byte*)&outMessage,16) == 16;
@@ -67,4 +67,15 @@ bool ServerComm::ReceiveMessage(MessageHeader& inMessage)
 
   return true;
 }
+
+bool ServerComm::Connected()
+{
+	return client.connected();
+}
+
+void ServerComm::StopClient()
+{
+	client.stop();
+}
+
 

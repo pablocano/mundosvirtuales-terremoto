@@ -70,6 +70,11 @@ public:
 	/// <returns>If a message was receive</returns>
 	bool ReceiveMessage(MessageHeader& inMessage);
 	
+	
+	bool Connected();
+	
+	void StopClient();
+	
 private:
 	
 	///<summary>

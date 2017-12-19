@@ -21,10 +21,10 @@ int total1 = 0;
 int total2 = 0;
 int average = 0;
 
-byte mac[] = { 0xCE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+byte mac[] = { 0x0E, 0xAD, 0xBE, 0xEF, 0xFE, 0xE1 };
 int port = 4322;
 
-ServerComm comm(2L);
+ServerComm comm(1L);
 
 void alive()
 {
@@ -40,18 +40,7 @@ void setup()
 
   Serial.println("Demo started");
 
-  if(comm.Begin(mac))
-  {
-    Serial.println("DHCP connection success");
-  }
-  
-  Serial.println("Connecting ...");
-  while(!comm.StartComm("plant.mundos-virtuales.com",port))
-  {
-    delay(1000);
-    Serial.println("Failed. Trying again ...");
-  }
-  Serial.println("Connection Established");
+  connectToServer();
   
   Serial.println("Initializing sensors"); 
   for (int thisReading1 = 0; thisReading1 < numReading1; thisReading1++) {
@@ -120,6 +109,13 @@ void loop()
   //Serial.print("LTA/STA=");
   //Serial.print(abs(ratio));
   //Serial.print("\n");
+
+  if(!comm.Connected())
+  {
+    Serial.println("Reconnecting");
+    comm.StopClient();
+    connectToServer();
+  }
   
   if (ratio > 1.00)
   {
@@ -128,12 +124,6 @@ void loop()
     if(comm.SendMessage(ServerComm::EARTHQUAKE, &ratio))
     {
       Serial.println("Message sent successfully");
-    }
-    else
-    {
-      Serial.println("Message not sent. Reseting ...");
-      delay(1000);
-      software_Reset();
     }
     delay(1000);
     //software_Reset();
@@ -175,6 +165,23 @@ void readFrom(int device, byte address, int num, byte buff[])
     i++;
   }
   Wire.endTransmission(); //end transmission
+}
+
+
+void connectToServer()
+{
+  if(comm.Begin(mac))
+  {
+    Serial.println("DHCP connection success");
+  }
+  
+  Serial.println("Connecting ...");
+  while(!comm.StartComm("plant.mundos-virtuales.com", port))
+  {
+    Serial.println("Failed. Trying again ...");
+    delay(2000);
+  }
+  Serial.println("Connection Established");
 }
 
 

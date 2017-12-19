@@ -8,13 +8,14 @@ int port = 4323;
 ServerComm::MessageHeader inMessage;
 
 ServerComm comm(3L);
-IPAddress server(192, 168, 1, 140);
 
 void alive()
 {
     Ethernet.maintain();
-    comm.SendMessage(ServerComm::ALIVE);
-    Serial.println("Sending alive");
+    if(comm.SendMessage(ServerComm::ALIVE))
+    {
+      Serial.println("Sending alive"); 
+    }
 }
 
 void setup()
@@ -23,20 +24,7 @@ void setup()
 
   Serial.println("Demo started");
 
-  onAlarm();
-
-  if(comm.Begin(mac))
-  {
-    Serial.println("DHCP connection success");
-  }
-  
-  Serial.println("Connecting ...");
-  while(!comm.StartComm(server, port))
-  {
-    delay(1000);
-    Serial.println("Failed. Trying again ...");
-  }
-  Serial.println("Connection Established");
+  connectToServer();
 
   // Set timer to maintain the connection with the server
   MsTimer2::set(60000, alive); // 60s period
@@ -45,6 +33,7 @@ void setup()
 
 void loop()
 {
+  digitalWrite(13, LOW);
   if(comm.ReceiveMessage(inMessage))
   {
     if(inMessage.type == (byte)ServerComm::EARTHQUAKE)
@@ -55,13 +44,36 @@ void loop()
       delay(3000);
     }
   }
-  
+
   delay(10);
+
+  if(!comm.Connected())
+  {
+    Serial.println("Reconnecting");
+    comm.StopClient();
+    connectToServer();
+  } 
 }
 
 void onAlarm()
 {
   tone(8, 262, 1000 / 4);
+}
+
+void connectToServer()
+{
+  if(comm.Begin(mac))
+  {
+    Serial.println("DHCP connection success");
+  }
+  
+  Serial.println("Connecting ...");
+  while(!comm.StartComm("plant.mundos-virtuales.com", port))
+  {
+    Serial.println("Failed. Trying again ...");
+    delay(2000);
+  }
+  Serial.println("Connection Established");
 }
 
 

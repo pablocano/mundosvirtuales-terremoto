@@ -9,14 +9,3 @@ ServerAlarm::ServerAlarm() : m_responseAlarm(ServerSensors::Instance()->m_listSe
 ServerAlarm::~ServerAlarm()
 {
 }
-
-std::shared_ptr<ClientTCP> ServerAlarm::addClient(int socketClient)
-{
-	std::shared_ptr<ClientTCP> lpClient = ServerTCP::addClient(socketClient);
-
-	ID newID = ServerSensors::Instance()->m_listSensors.appendNewIDSensor();
-
-	lpClient->setClientID(ClientID(newID));
-
-	return lpClient;
-}

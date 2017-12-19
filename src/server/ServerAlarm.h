@@ -5,7 +5,7 @@
 #include "../server/ResponseAlarm.h"
 #include "../utils/network/ServerTCP.h"
 
-#define PORT_SERVER_ALARM 4321
+#define PORT_SERVER_ALARM 4323
 
 class ServerAlarm : public ServerTCP
 {
@@ -33,8 +33,4 @@ public:
 	void start() { Runnable::start(); m_requestAlarm.start(); }
 
 	friend class ServerAlarm;
-
-protected:
-
-	std::shared_ptr<ClientTCP> addClient(int socketClient);
 };

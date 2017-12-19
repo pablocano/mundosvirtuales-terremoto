@@ -25,11 +25,9 @@ void RequestAlarm::run()
 		int totalSensors = listSensors.size();
 		if (totalSensors > 0)
 		{
-			LOGGER_DEBUG("RequestAlarm", "total: " + totalSensors);
 			for (int i = 0; i < totalSensors; ++i)
 			{
-				LOGGER_DEBUG("RequestAlarm", "Timestamp: " + std::to_string(timestamp - listSensors[i].m_timestamp));
-				if ((timestamp - listSensors[i].m_timestamp) < 5000)
+				if ((timestamp - listSensors[i].m_timestamp) < 2000)
 				{
 					activeSensors++;
 					if (listSensors[i].m_confidence > 0.5f)
@@ -65,6 +63,7 @@ void RequestAlarm::sendAlert(float meanIntensity) const
 	LOGGER_DEBUG("RequestAlarm", "Send alarm EarthQuake " + std::to_string(packetAlert.m_payload));
 	for (int i = 0; i < size; ++i)
 	{
-		m_queueClients.at(i).get()->sendMessage((char *) &packetAlert, sizeof(PacketComm));
+		PacketComm packet = packetAlert.packing();
+		m_queueClients.at(i).get()->sendMessage((char *) &packet, sizeof(PacketComm));
 	}
 }

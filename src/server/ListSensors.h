@@ -20,7 +20,7 @@ class ListSensors
 {
 protected:
 	DataSensor m_queue[MAX_SIZE_SENSORS]; /* Queue where the data is stored. */
-	ID m_lastID;
+	RemoteID m_lastID;
 
 public:
 
@@ -33,14 +33,14 @@ public:
 	/// Reserve space for a new sensor and returns its ID. 
 	/// </summary>
 	/// <returns></returns>
-	ID appendNewIDSensor();
+	RemoteID appendNewIDSensor();
 
 	/// <summary>
 	/// Added an item to queue.
 	/// </summary>
 	/// <param name="id">Identification client sensor.</param>
 	/// <param name="data">New sensor to add to queue.</param>
-	void appendMeassure(ID id, DataSensor& data);
+	void appendMeassure(RemoteID id, DataSensor& data);
 
 	int size() const
 	{

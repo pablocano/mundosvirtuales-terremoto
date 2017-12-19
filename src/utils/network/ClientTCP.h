@@ -60,8 +60,9 @@ public:
 	/// <param name="size"></param>
 	bool sendMessage(const char* message, unsigned int size);
 
-	void setClientID(ClientID clientID)
-	{
-		m_clientID = clientID;
-	}
+	/// <summary>
+	/// Setter of identification of remote client.
+	/// </summary>
+	/// <param name="clientID">Identification of remote client.</param>
+	void setClientID(ClientID clientID);
 };

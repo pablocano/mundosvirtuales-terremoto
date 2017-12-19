@@ -31,4 +31,8 @@ public:
 
 	friend class ServerAlarm;
 	friend class ResponseSensors;
+
+protected:
+
+	virtual std::shared_ptr<ClientTCP> addClient(int socketClient) override;
 };

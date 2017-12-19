@@ -5,13 +5,13 @@ ListSensors::ListSensors() : m_lastID(0)
 {
 }
 
-ID ListSensors::appendNewIDSensor()
+RemoteID ListSensors::appendNewIDSensor()
 {
-	ID id = m_lastID++;
+	RemoteID id = m_lastID++;
 	return id;
 }
 
-void ListSensors::ListSensors::appendMeassure(ID id, DataSensor& data)
+void ListSensors::ListSensors::appendMeassure(RemoteID id, DataSensor& data)
 {
 	if (id >= 0 && id <= m_lastID)
 	{

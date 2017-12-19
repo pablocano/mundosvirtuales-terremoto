@@ -2,41 +2,57 @@
 
 #include <string>
 
-typedef std::string UID;
+/// <summary>
+/// Session identification.
+/// </summary>
+typedef std::string SessionID;
 
-typedef int ID;
+/// <summary>
+/// Identification of remote client.
+/// </summary>
+typedef int RemoteID;
 
+/* Identification of remote connection. */
 class ClientID
 {
 private:
-	ID m_id;
-	UID m_uuid;
+	RemoteID m_id; /* Identification of remote client. */
+	SessionID m_sid; /* Identification of session.  */
 
 public:
+
 	/// <summary>
-	/// Constructor.
+	/// Constructor
 	/// </summary>
-	ClientID() : m_id(0)
+	/// <param name="id"></param>
+	ClientID(int id = 0) : m_id(id)
 	{
-		m_uuid = generateUUID();
+		m_sid = generateSID();
 	}
 
-	ClientID(int id) : m_id(id)
-	{
-		m_uuid = generateUUID();
-	}
-
-	ID getID() const
+	/// <summary>
+	/// Getter of identification remote client.
+	/// </summary>
+	/// <returns></returns>
+	RemoteID getID() const
 	{
 		return m_id;
 	}
 
-	const UID getUUID() const
+	/// <summary>
+	/// Getter Session of this remote connection.
+	/// </summary>
+	/// <returns></returns>
+	const SessionID getSID() const
 	{
-		return m_uuid;
+		return m_sid;
 	}
 
-	static UID generateUUID()
+	/// <summary>
+	/// Generate a random session identification.
+	/// </summary>
+	/// <returns></returns>
+	static SessionID generateSID()
 	{
 		static const std::string CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
@@ -63,6 +79,6 @@ public:
 			}
 		}
 
-		return (UID) uuid;
+		return (SessionID) uuid;
 	}
 };

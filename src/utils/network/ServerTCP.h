@@ -59,5 +59,5 @@ public:
 
 protected:
 
-	std::shared_ptr<ClientTCP> addClient(int socketClient);
+	virtual std::shared_ptr<ClientTCP> addClient(int socketClient);
 };

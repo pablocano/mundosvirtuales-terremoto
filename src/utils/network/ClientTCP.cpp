@@ -1,14 +1,17 @@
 #include "ClientTCP.h"
+#include "ClientTCP.h"
+#include "ClientTCP.h"
+#include "ClientTCP.h"
 #include "../logger/Logger.h"
 
 #include <iostream>
 
-ClientTCP::ClientTCP(const char* ip, int port, std::shared_ptr<ResponsePacket> lpProcessPacket, std::function<void(std::shared_ptr<ClientTCP>)> closeClientFn, bool isDetach) : Runnable(isDetach),
+ClientTCP::ClientTCP(const char* ip, int port, ResponsePacket* lpProcessPacket, std::function<void(std::shared_ptr<ClientTCP>)> closeClientFn, bool isDetach) : Runnable(isDetach),
 m_tcpComm(ip, port), m_lpResponsePacket(lpProcessPacket), m_closeClientFn(closeClientFn)
 {
 }
 
-ClientTCP::ClientTCP(int socket, std::shared_ptr<ResponsePacket> lpProcessPacket, std::function<void(std::shared_ptr<ClientTCP>)> closeClientFn, bool isDetach) : Runnable(isDetach),
+ClientTCP::ClientTCP(int socket, ResponsePacket* lpProcessPacket, std::function<void(std::shared_ptr<ClientTCP>)> closeClientFn, bool isDetach) : Runnable(isDetach),
 m_tcpComm(socket), m_lpResponsePacket(lpProcessPacket), m_closeClientFn(closeClientFn)
 {
 }
@@ -17,6 +20,21 @@ ClientTCP::~ClientTCP()
 {
 	m_tcpComm.closeSocket();
 	LOGGER_DEBUG("Client TCP", "Delete Thread Communication Client " + m_tcpComm.getInfo());
+}
+
+bool ClientTCP::sendMessage(const char* message, unsigned int size)
+{
+	return m_tcpComm.send(message, size);
+}
+
+/// <summary>
+/// Setter of identification of remote client.
+/// </summary>
+/// <param name="clientID">Identification of remote client.</param>
+
+void ClientTCP::setClientID(ClientID clientID)
+{
+	m_clientID = clientID;
 }
 
 void ClientTCP::run()
@@ -44,7 +62,7 @@ void ClientTCP::run()
 				if (packetReceive.isValid())
 				{
 					// Process packet, returns a response if it necessary.
-					PacketComm packetResponse = m_lpResponsePacket->process_packet(packetReceive, m_tcpComm);
+					PacketComm packetResponse = m_lpResponsePacket->process_packet(getClientID(), packetReceive, m_tcpComm);
 							
 					if (packetResponse.isValid())
 					{

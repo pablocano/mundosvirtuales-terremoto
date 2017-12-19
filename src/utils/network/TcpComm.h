@@ -68,6 +68,18 @@ public:
 	/// </summary>
 	/// <returns>Returns true if the connection was established, false otherwise.</returns>
 	bool connected() const { return m_socket > 0; }
+
+	/// <summary>
+	/// Sets blocking socket.
+	/// </summary>
+	/// <param name="state"></param>
+	void setBlock(bool state);
+
+	/// <summary>
+	/// Sets timeout.
+	/// </summary>
+	/// <param name="usec">Micro-Seconds timeout</param>
+	void setTimeout(int usec);
 };
 
 /// <summary>

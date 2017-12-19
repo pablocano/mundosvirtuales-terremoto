@@ -1,30 +1,38 @@
 #pragma once
 
-#include "../utils/communication/ResponsePacketServer.h"
+#include "../server/ListSensors.h"
+#include "../server/ResponseSensors.h"
+#include "../utils/network/ServerTCP.h"
 
-#include <map>
+class ServerAlarm;
 
-/// <summary>
-/// Process incoming packets, if it is necessary, this class makes a query to database for response some packets.
-/// </summary>
-class ServerSensors : public ResponsePacketServer
+class ServerSensors : public ServerTCP
 {
-public:
-	/// <summary>
-	/// Constructor.
-	/// </summary>
+private:
+
+	ListSensors m_listSensors;
+	ResponseSensors m_serverSensors;
+
+	ServerSensors(const ServerSensors&) = delete;
+	ServerSensors & operator=(const ServerSensors&) = delete;
+
 	ServerSensors();
 
-	/// <summary>
-	/// Destructor.
-	/// </summary>
 	~ServerSensors();
 
-	/// <summary>
-	/// Automatically respond incoming packets, if a packet respond to a request packet, the packet is placed in a packet queue.
-	/// </summary>
-	/// <param name="packet">Incoming packet.</param>
-	/// <param name="tcpComm">Socket communication.</param>
-	/// <returns>Returns response packet for the incoming packet.</returns>
-	virtual PacketComm process_packet(PacketComm packet, SocketClientTcp& tcpComm) override;
+public:
+
+	static ServerSensors* Instance() {
+		static ServerSensors* S = new ServerSensors();
+		return S;
+	}
+
+	const ListSensors& getListSensors() const;
+
+	friend class ServerAlarm;
+	friend class ResponseSensors;
+
+protected:
+
+	virtual std::shared_ptr<ClientTCP> addClient(int socketClient) override;
 };

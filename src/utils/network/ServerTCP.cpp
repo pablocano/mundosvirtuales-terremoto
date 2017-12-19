@@ -1,8 +1,9 @@
 #include "ServerTCP.h"
 #include "ExceptionNetwork.h"
 #include "../logger/Logger.h"
+#include "../platform/SystemCall.h"
 
-ServerTCP::ServerTCP(ResponsePacketServer* lpServer) : m_lpServerPlant(lpServer)
+ServerTCP::ServerTCP(ResponsePacketServer* lpServer, int port) : m_lpServerResponse(lpServer), m_port(port)
 {
 	LOGGER_LOG("Server TCP", "Create Server");
 }
@@ -22,19 +23,19 @@ ServerTCP::~ServerTCP()
 
 void ServerTCP::run()
 {
-	if (m_lpServerPlant)
+	if (m_lpServerResponse)
 	{
-		m_lpTcpServer = new SocketServerTCP(PORT_SERVERPLANT);
+		m_lpTcpServer = new SocketServerTCP(m_port);
+		m_lpTcpServer->setBlock(true);
+		// m_lpTcpServer->setTimeout(10000); // TODO: doesn't work :(
+
 		LOGGER_LOG("Server TCP", "Run Server");
 		while (!m_stop || exist_client())
 		{
-			int socketClient = 0;
+			int socketClient = -1;
 			if ((socketClient = m_lpTcpServer->acceptClient()) > 0)
 			{
-				std::shared_ptr<ClientTCP> lpClient(new ClientTCP(socketClient,
-					std::dynamic_pointer_cast<ResponsePacket>(m_lpServerPlant), std::bind(&ServerTCP::remove_client_from_queue, this, std::placeholders::_1)));
-
-				m_queueClients.add(lpClient);
+				std::shared_ptr<ClientTCP> lpClient = addClient(socketClient);
 
 				lpClient->start();
 			}
@@ -45,6 +46,23 @@ void ServerTCP::run()
 	{
 		LOGGER_LOG("Server TCP", "Invalid Server");
 	}
+}
+
+std::shared_ptr<ClientTCP> ServerTCP::addClient(int socketClient)
+{
+	std::shared_ptr<ClientTCP> lpClient(new ClientTCP(socketClient,
+		(ResponsePacket *)m_lpServerResponse, std::bind(&ServerTCP::remove_client_from_queue, this, std::placeholders::_1)));
+
+	m_queueClients.add(lpClient);
+
+	return lpClient;
+}
+
+void ServerTCP::stop()
+{
+	close_all_clients();
+
+	Runnable::stop();
 }
 
 bool ServerTCP::exist_client()

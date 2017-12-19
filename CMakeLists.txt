@@ -7,13 +7,21 @@ set( MAIN_SRC
 )
 
 set ( SERVER_SRC
-	src/server/ClientSensor.cpp
+	src/server/ListSensors.cpp
+	src/server/ResponseAlarm.cpp
+	src/server/RequestAlarm.cpp
+	src/server/ResponseSensors.cpp
+	src/server/ServerAlarm.cpp
 	src/server/ServerSensors.cpp
 )
 
 set ( SERVER_INCLUDE
 	src/server/ExceptionServer.h
-	src/server/ClientSensor.h
+	src/server/ListSensors.h
+	src/server/RequestAlarm.h
+	src/server/ResponseAlarm.h
+	src/server/ResponseSensors.h
+	src/server/ServerAlarm.h
 	src/server/ServerSensors.h
 )
 
@@ -49,6 +57,7 @@ set( UTILS_INCLUDE
 	src/utils/platform/SystemCall.h
 	src/utils/security/Cryptography.h
 	src/utils/security/ExceptionSecurity.h
+	src/utils/ClientID.h
 	src/utils/Exception.h
 	src/utils/Queue.h
 	src/utils/util.h

@@ -2,6 +2,9 @@
 
 #include "../Exception.h"
 
+/// <summary>
+/// Network Exception.
+/// </summary>
 class ExceptionNetwork : public Exception
 {
 public:

@@ -43,7 +43,7 @@ PacketComm ResponseSensors::process_packet(const ClientID clientID, PacketComm p
 
 void ResponseSensors::updateListSensor(const ClientID clientID, PacketComm packet, long timestamp)
 {
-	DataSensor data;
+	MeassurementSensor data;
 	data.m_timestamp = timestamp;
 	data.m_intensity = packet.m_payload;
 

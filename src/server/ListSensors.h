@@ -4,23 +4,26 @@
 
 #define MAX_SIZE_SENSORS 10000
 
-struct DataSensor
+/// <summary>
+/// Information of sensor
+/// </summary>
+struct MeassurementSensor
 {
-	float m_intensity;
-	long m_timestamp;
-	float m_confidence;
+	float m_intensity; /* Intensity of earthquake. */
+	long m_timestamp; /* Timestamp of meassurement.  */
+	float m_confidence; /* Confidence of meassurement. */
 
-	DataSensor() : m_intensity(0.f), m_timestamp(0L), m_confidence(1.f) {};
+	MeassurementSensor() : m_intensity(0.f), m_timestamp(0L), m_confidence(1.f) {};
 };
 
 /// <summary>
-/// List of sensors with concurrency support.
+/// List of sensors without concurrency support.
 /// </summary>
 class ListSensors
 {
 protected:
-	DataSensor m_queue[MAX_SIZE_SENSORS]; /* Queue where the data is stored. */
-	RemoteID m_lastID;
+	MeassurementSensor m_queue[MAX_SIZE_SENSORS]; /* Queue where the data is stored. */
+	RemoteID m_lastID; /*  */
 
 public:
 
@@ -40,14 +43,14 @@ public:
 	/// </summary>
 	/// <param name="id">Identification client sensor.</param>
 	/// <param name="data">New sensor to add to queue.</param>
-	void appendMeassure(RemoteID id, DataSensor& data);
+	void appendMeassure(RemoteID id, MeassurementSensor& data);
 
 	int size() const
 	{
 		return m_lastID;
 	}
 
-	const DataSensor& operator[](int index) const
+	const MeassurementSensor& operator[](int index) const
 	{
 		return m_queue[index];
 	}

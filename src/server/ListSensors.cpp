@@ -11,7 +11,7 @@ RemoteID ListSensors::appendNewIDSensor()
 	return id;
 }
 
-void ListSensors::ListSensors::appendMeassure(RemoteID id, DataSensor& data)
+void ListSensors::ListSensors::appendMeassure(RemoteID id, MeassurementSensor& data)
 {
 	if (id >= 0 && id <= m_lastID)
 	{

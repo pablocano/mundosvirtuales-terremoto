@@ -19,8 +19,13 @@ public:
 	///</summary>
 	enum MessageType
 	{
-		EARTHQUAKE,
-		ALIVE
+		ALIVE			   = 0x00, /* Alive command. */
+		EARTHQUAKE		   = 0x01, /* This command is sent from the client when the sensors are activated due to an earthquake. */
+		WRONG_PACKET	   = 0x02, /* This command is returned when the receive packet has wrong format. */
+		CLOSE_CONNECTION   = 0x03, /* This command close connection between client and server. */
+		// Adding new command from bellow ...
+		ACKNOWLEDGE_SENSOR = 0x04, /* This command starts exchange data between clients and server. */
+		RENEW_DEVICE_ID	   = 0x05  /* This command allows to renew device identification. */
 	};
 
 	struct MessageHeader
@@ -64,7 +69,7 @@ public:
 	bool SendMessage(MessageType type, float* ratio = 0);
 
 	///<summary>
-	/// Receive a message fromo the server
+	/// Receive a message from the server
 	///</summary>
 	/// <param name="inMessage">The message received.</param>
 	/// <returns>If a message was receive</returns>

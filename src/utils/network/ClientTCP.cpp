@@ -2,6 +2,7 @@
 #include "ClientTCP.h"
 #include "ClientTCP.h"
 #include "ClientTCP.h"
+#include "ClientTCP.h"
 #include "../logger/Logger.h"
 
 #include <iostream>
@@ -27,10 +28,10 @@ bool ClientTCP::sendMessage(const char* message, unsigned int size)
 	return m_tcpComm.send(message, size);
 }
 
-/// <summary>
-/// Setter of identification of remote client.
-/// </summary>
-/// <param name="clientID">Identification of remote client.</param>
+bool ClientTCP::recvMessage(char* message, unsigned int size)
+{
+	return m_tcpComm.receive(message, size);
+}
 
 void ClientTCP::setClientID(ClientID clientID)
 {

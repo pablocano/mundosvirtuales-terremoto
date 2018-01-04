@@ -23,7 +23,7 @@ protected:
 	/// Remove client from queue.
 	/// </summary>
 	/// <param name="lpClient">Pointer to handle communication with client.</param>
-	void remove_client_from_queue(std::shared_ptr<ClientTCP> lpClient);
+	virtual void remove_client_from_queue(std::shared_ptr<ClientTCP> lpClient);
 
 public:
 	/// <summary>
@@ -48,16 +48,36 @@ public:
 	bool exist_client();
 
 	/// <summary>
+	/// Validate if the remote client already stored in list of sensors.
+	/// </summary>
+	/// <param name="clientID"></param>
+	/// <returns>Returns true if the client exist in the list of sensors, false otherwise.</returns>
+	bool existRemoteClient(const ClientID& clientID) const;
+
+	/// <summary>
+	/// Gets the local identification from remote identification.
+	/// </summary>
+	/// <param name="remoteID">Remote identification.</param>
+	/// <returns>Returns a local identification.</returns>
+	LocalID getLocalIDFromRemoteID(const RemoteID& remoteID) const;
+
+	/// <summary>
 	/// Close all active clients.
 	/// </summary>
 	void close_all_clients();
 
-	const Queue<std::shared_ptr<ClientTCP>>& getQueueClients() const
-	{
-		return m_queueClients;
-	}
+	/// <summary>
+	/// Getting queue of clients.
+	/// </summary>
+	/// <returns></returns>
+	const Queue<std::shared_ptr<ClientTCP>>& getQueueClients() const;
 
 protected:
 
+	/// <summary>
+	/// Adding clients for communication.
+	/// </summary>
+	/// <param name="socketClient">Socket of client</param>
+	/// <returns></returns>
 	virtual std::shared_ptr<ClientTCP> addClient(int socketClient);
 };

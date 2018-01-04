@@ -22,17 +22,28 @@ PacketComm ResponseSensors::process_packet(const ClientID clientID, PacketComm p
 	{
 	case Command::CLOSE_CONNECTION:
 		LOGGER_LOG("ResponseSensors", "CLOSE_CONNECTION");
+		// Close socket
 		tcpComm.closeSocket();
 		break;
 	case Command::EARTHQUAKE:
 		LOGGER_LOG("ResponseSensors", ("EARTHQUAKE : " + std::to_string(packet.m_payload)));
+		// Adding new meassurement
 		updateListSensor(clientID, packet, SystemCall::getCurrentSystemTime());
 		break;
 	case Command::ALIVE:
 		LOGGER_LOG("ResponseSensors", "ALIVE");
 		break;
-	case Command::NONE:
-		LOGGER_LOG("ResponseSensors", "NONE");
+	case Command::ACKNOWLEDGE_SENSOR:
+		LOGGER_LOG("ResponseSensors", "ACKNOWLEDGE");
+		{
+			// Close connection if exist remote client on list of sensors.
+			LocalID localID = ServerSensors::Instance()->getLocalIDFromRemoteID(clientID.getRemoteID());
+			if (localID >= 0)
+			{
+				// Close connection.
+				tcpComm.closeSocket();
+			}
+		}
 		break;
 	default:
 		LOGGER_LOG("ResponseSensors", "UNKNOW COMMAND");
@@ -47,5 +58,5 @@ void ResponseSensors::updateListSensor(const ClientID clientID, PacketComm packe
 	data.m_timestamp = timestamp;
 	data.m_intensity = packet.m_payload;
 
-	ServerSensors::Instance()->m_listSensors.appendMeassure(clientID.getID(), data);
+	ServerSensors::Instance()->m_listSensors.appendMeassure(clientID.getLocalID(), data);
 }

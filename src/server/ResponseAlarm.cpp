@@ -26,9 +26,6 @@ PacketComm ResponseAlarm::process_packet(const ClientID clientID, PacketComm pac
 	case Command::ALIVE:
 		LOGGER_LOG("ResponseAlarm", "ALIVE");
 		break;
-	case Command::NONE:
-		LOGGER_LOG("ResponseAlarm", "NONE");
-		break;
 	default:
 		LOGGER_LOG("ResponseAlarm", "UNKNOW COMMAND");
 	}

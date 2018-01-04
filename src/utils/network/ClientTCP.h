@@ -19,11 +19,6 @@ protected:
 
 	void run(); /* Implement virtual function. */
 
-	/// <summary>
-	/// Gets Identification of client.
-	/// </summary>
-	const ClientID getClientID() const { return m_clientID; }
-
 public:
 	/// <summary>
 	/// Constructor.
@@ -56,13 +51,27 @@ public:
 	/// <summary>
 	/// Send messages.
 	/// </summary>
-	/// <param name="message"></param>
-	/// <param name="size"></param>
+	/// <param name="message">Buffer message.</param>
+	/// <param name="size">Size buffer message.</param>
+	/// <returns>Returns true if the message was sent successful, false otherwise.</returns>
 	bool sendMessage(const char* message, unsigned int size);
+
+	/// <summary>
+	/// Receive message.
+	/// </summary>
+	/// <param name="message">Buffer message.</param>
+	/// <param name="size">Size buffer message.</param>
+	/// <returns>Returns true if the message was received successful, false otherwise.</returns>
+	bool recvMessage(char* message, unsigned int size);
 
 	/// <summary>
 	/// Setter of identification of remote client.
 	/// </summary>
 	/// <param name="clientID">Identification of remote client.</param>
 	void setClientID(ClientID clientID);
+
+	/// <summary>
+	/// Getter Identification of client.
+	/// </summary>
+	const ClientID getClientID() const { return m_clientID; }
 };

@@ -19,17 +19,15 @@ void RequestAlarm::run()
 		SystemCall::sleep(500);
 		long timestamp = SystemCall::getCurrentSystemTime();
 		float intensity = 0.f;
-		int activeSensors = 0;
 		int validSensors = 0;
 
-		int totalSensors = listSensors.size();
+		int totalSensors = listSensors.getCurrentTotalSensors();
 		if (totalSensors > 0)
 		{
 			for (int i = 0; i < totalSensors; ++i)
 			{
 				if ((timestamp - listSensors[i].m_timestamp) < 2000)
 				{
-					activeSensors++;
 					if (listSensors[i].m_confidence > 0.5f)
 					{
 						validSensors++;
@@ -40,7 +38,7 @@ void RequestAlarm::run()
 
 			float meanIntensity = intensity / validSensors;
 
-			if (activeSensors / totalSensors > 0.5f)
+			if (listSensors.getActiveSensors() / totalSensors > 0.5f)
 			{
 				sendAlert(meanIntensity);
 			}

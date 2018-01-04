@@ -4,23 +4,28 @@
 
 #define MAX_SIZE_SENSORS 10000
 
-struct DataSensor
+/// <summary>
+/// Information of sensor
+/// </summary>
+struct MeassurementSensor
 {
-	float m_intensity;
-	long m_timestamp;
-	float m_confidence;
+	float m_intensity; /* Intensity of earthquake. */
+	long m_timestamp; /* Timestamp of meassurement.  */
+	float m_confidence; /* Confidence of meassurement. */
 
-	DataSensor() : m_intensity(0.f), m_timestamp(0L), m_confidence(1.f) {};
+	MeassurementSensor() : m_intensity(0.f), m_timestamp(0L), m_confidence(1.f) {};
 };
 
 /// <summary>
-/// List of sensors with concurrency support.
+/// List of sensors without concurrency support.
 /// </summary>
 class ListSensors
 {
 protected:
-	DataSensor m_queue[MAX_SIZE_SENSORS]; /* Queue where the data is stored. */
-	RemoteID m_lastID;
+	MeassurementSensor m_queue[MAX_SIZE_SENSORS]; /* Queue where the measurements are stored. */
+	LocalID m_nextPos; /* Position where the next measurement will be stored. */
+	int m_activeSensors; /* Amount of active sensors. */
+	int m_maxSize; /* Maximum amount of sensors. */
 
 public:
 
@@ -30,25 +35,46 @@ public:
 	ListSensors();
 
 	/// <summary>
-	/// Reserve space for a new sensor and returns its ID. 
+	/// Returns index for current space for saving meassurent. 
 	/// </summary>
 	/// <returns></returns>
-	RemoteID appendNewIDSensor();
+	LocalID getNextLocalID();
 
 	/// <summary>
-	/// Added an item to queue.
+	/// Adding an item to queue.
 	/// </summary>
 	/// <param name="id">Identification client sensor.</param>
 	/// <param name="data">New sensor to add to queue.</param>
-	void appendMeassure(RemoteID id, DataSensor& data);
+	void appendMeassure(LocalID id, MeassurementSensor& data);
 
-	int size() const
-	{
-		return m_lastID;
-	}
+	/// <summary>
+	/// Getting active sensors. 
+	/// </summary>
+	/// <returns></returns>
+	int getActiveSensors() const;
 
-	const DataSensor& operator[](int index) const
-	{
-		return m_queue[index];
-	}
+	/// <summary>
+	/// Getting amount of sensors (active and inactive sensors).
+	/// </summary>
+	/// <returns></returns>
+	int getCurrentTotalSensors() const;
+
+	/// <summary>
+	/// Reserving space for new sensor meassurement.
+	/// </summary>
+	/// <returns>Returns true if the reservation was successful, false otherwise.</returns>
+	bool reserveSpaceNewSensor();
+
+	/// <summary>
+	/// Deleting space of sensor.
+	/// </summary>
+	/// <param name="id">local identification of sensor.</param>
+	void deleteSpaceSensor(LocalID id);
+
+	/// <summary>
+	/// Operator indexation.
+	/// </summary>
+	/// <param name="index">Index</param>
+	/// <returns>Returns meassurement stored in position</returns>
+	const MeassurementSensor& operator[](int index) const;
 };

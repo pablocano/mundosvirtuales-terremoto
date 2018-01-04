@@ -1,4 +1,6 @@
 #include "ServerTCP.h"
+#include "ServerTCP.h"
+#include "ServerTCP.h"
 #include "ExceptionNetwork.h"
 #include "../logger/Logger.h"
 #include "../platform/SystemCall.h"
@@ -37,7 +39,12 @@ void ServerTCP::run()
 			{
 				std::shared_ptr<ClientTCP> lpClient = addClient(socketClient);
 
-				lpClient->start();
+				if (lpClient)
+				{
+					lpClient->start();
+				} else {
+					LOGGER_LOG("Server TCP", "An error occurred while trying to add a new client.");
+				}
 			}
 		}
 		LOGGER_LOG("Server TCP", "Stop Server");
@@ -70,6 +77,31 @@ bool ServerTCP::exist_client()
 	return m_queueClients.size() > 0;
 }
 
+bool ServerTCP::existRemoteClient(const ClientID & clientID) const
+{
+	for (int i = 0; i < m_queueClients.size(); ++i)
+	{
+		if (m_queueClients.at(i)->getClientID().getRemoteID() == clientID.getRemoteID())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+LocalID ServerTCP::getLocalIDFromRemoteID(const RemoteID & remoteID) const
+{
+	for (int i = 0; i < m_queueClients.size(); ++i)
+	{
+		const ClientID& clientID = m_queueClients.at(i)->getClientID();
+		if (m_queueClients.at(i)->getClientID().getRemoteID() == remoteID)
+		{
+			return clientID.getLocalID();
+		}
+	}
+	return LocalID(-1);
+}
+
 void ServerTCP::close_all_clients()
 {
 	while (exist_client())
@@ -77,6 +109,10 @@ void ServerTCP::close_all_clients()
 		std::shared_ptr<ClientTCP> lpClient = m_queueClients.remove();
 		lpClient->stop();
 	}
+}
+const Queue<std::shared_ptr<ClientTCP>>& ServerTCP::getQueueClients() const
+{
+	return m_queueClients;
 }
 
 void ServerTCP::remove_client_from_queue(std::shared_ptr<ClientTCP> lpClient)

@@ -12,11 +12,28 @@ typedef std::string SessionID;
 /// </summary>
 typedef int RemoteID;
 
+/// <summary>
+/// Register for storing data of remote client.
+/// </summary>
+struct RemoteClientData
+{
+	RemoteID m_remoteID; /* Remote identification */
+	long m_createTimestamp; /* Timestamp when this register was stored. */
+	double m_lat; /* latitude. */
+	double m_lng; /* Longitude. */
+};
+
+/// <summary>
+/// Local identification for client.
+/// </summary>
+typedef int LocalID;
+
 /* Identification of remote connection. */
 class ClientID
 {
 private:
-	RemoteID m_id; /* Identification of remote client. */
+	RemoteID m_remoteID; /* Identification of remote client. */
+	LocalID m_localID; /* Local identification for client.  */
 	SessionID m_sid; /* Identification of session.  */
 
 public:
@@ -24,8 +41,8 @@ public:
 	/// <summary>
 	/// Constructor
 	/// </summary>
-	/// <param name="id"></param>
-	ClientID(int id = 0) : m_id(id)
+	/// <param name="id">Local Identification</param>
+	ClientID(LocalID id = 0) : m_remoteID(0), m_localID(id)
 	{
 		m_sid = generateSID();
 	}
@@ -34,9 +51,18 @@ public:
 	/// Getter of identification remote client.
 	/// </summary>
 	/// <returns></returns>
-	RemoteID getID() const
+	RemoteID getRemoteID() const
 	{
-		return m_id;
+		return m_remoteID;
+	}
+
+	/// <summary>
+	/// Getter of local identification for client.
+	/// </summary>
+	/// <returns></returns>
+	RemoteID getLocalID() const
+	{
+		return m_localID;
 	}
 
 	/// <summary>

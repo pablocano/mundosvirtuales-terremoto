@@ -31,11 +31,13 @@
 /// </summary>
 typedef enum _Command
 {
-	EARTHQUAKE = 0,
-	ALIVE = 1,
-	NONE,
-	WRONG_PACKET,
-	CLOSE_CONNECTION
+	ALIVE			   = 0x00, /* Alive command. */
+	EARTHQUAKE		   = 0x01, /* This command is sent from the client when the sensors are activated due to an earthquake. */
+	WRONG_PACKET	   = 0x02, /* This command is returned when the receive packet has wrong format. */
+	CLOSE_CONNECTION   = 0x03, /* This command close connection between client and server. */
+	// Adding new command from bellow ...
+	ACKNOWLEDGE_SENSOR = 0x04, /* This command starts exchange data between clients and server. */
+	RENEW_DEVICE_ID	   = 0x05  /* This command allows to renew device identification. */
 } Command;
 
 /// <summary>
@@ -52,7 +54,7 @@ STRUCT_PACKET HeaderPacketComm
 	/// <summary>
 	/// Constructor
 	/// </summary>
-	HeaderPacketComm() : version(VERSION_PACKET), m_command(Command::NONE), m_flags(0), m_idDevice(0), m_idResponse(0) {};
+	HeaderPacketComm(const Command command = Command::ALIVE) : version(VERSION_PACKET), m_command(command), m_flags(0), m_idDevice(0), m_idResponse(0) {};
 
 	/// <summary>
 	/// Validate header.
@@ -87,7 +89,7 @@ STRUCT_PACKET PacketComm
 	/// <summary>
 	/// Constructor.
 	/// </summary>
-	PacketComm() : m_header() {}
+	PacketComm(const Command command = Command::ALIVE) : m_header(command) {}
 
 	/// <summary>
 	/// Validate packet.

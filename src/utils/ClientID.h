@@ -32,8 +32,8 @@ typedef int LocalID;
 class ClientID
 {
 private:
+	LocalID m_localID; /* Local identification for client. */
 	RemoteID m_remoteID; /* Identification of remote client. */
-	LocalID m_localID; /* Local identification for client.  */
 	SessionID m_sid; /* Identification of session.  */
 
 public:
@@ -42,7 +42,7 @@ public:
 	/// Constructor
 	/// </summary>
 	/// <param name="id">Local Identification</param>
-	ClientID(LocalID id = 0) : m_remoteID(0), m_localID(id)
+	ClientID(LocalID id = -1, RemoteID rid = -1) : m_localID(id), m_remoteID(rid)
 	{
 		m_sid = generateSID();
 	}
@@ -106,5 +106,10 @@ public:
 		}
 
 		return (SessionID) uuid;
+	}
+
+	std::string toString() const
+	{
+		return "Sensor<" + std::to_string(m_remoteID) + ">";
 	}
 };

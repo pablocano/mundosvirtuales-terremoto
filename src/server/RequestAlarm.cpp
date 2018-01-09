@@ -38,7 +38,7 @@ void RequestAlarm::run()
 
 			float meanIntensity = intensity / validSensors;
 
-			if (listSensors.getActiveSensors() / totalSensors > 0.5f)
+			if (listSensors.getActiveSensors() != 0 && (validSensors / listSensors.getActiveSensors()) > 0.5f)
 			{
 				sendAlert(meanIntensity);
 			}

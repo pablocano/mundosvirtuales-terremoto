@@ -27,9 +27,9 @@ bool ServerComm::StartComm(char* server, int port)
 }
 
 
-bool ServerComm::SendMessage(MessageType type, float* ratio)
+bool ServerComm::SendMessage(Command command, float* ratio)
 {
-	MessageHeader outMessage = {version, (byte)type, (byte)(ratio ? 1 : 0), id, messageId++, *ratio};
+	MessageHeader outMessage = {version, (byte)command, (byte)(ratio ? 1 : 0), id, messageId++, *ratio};
 
 	// Encrypt the message
 	Cryptography::encrypt((unsigned long*) &outMessage, 4, key);
@@ -43,18 +43,29 @@ bool ServerComm::SendMessage(MessageType type, float* ratio)
 	return false;
 }
 
-bool ServerComm::ReceiveMessage(MessageHeader& inMessage)
+bool ServerComm::ReceiveMessage(MessageHeader& inMessage, bool nonBlock)
 {
-  if(client.available() < 16)
-  {
-    return false;
-  }
   byte inBytes[16];
-  for(int i = 0; i < 16; i++)
-  {
-    inBytes[i] = client.read();
+  
+  if(nonBlock)
+  {  
+	  if(client.available() < 16)
+	  {
+		return false;
+	  }
+	  for(int i = 0; i < 16; i++)
+	  {
+		inBytes[i] = client.read();
+	  }
   }
-
+  else
+  {
+	  for(int i = 0; i < 16; i++)
+	  {
+		if(client.available())
+			inBytes[i] = client.read();
+	  }
+  }
   memcpy(&inMessage, inBytes, 16);
 
   // Decrypt the message
@@ -76,6 +87,11 @@ bool ServerComm::Connected()
 void ServerComm::StopClient()
 {
 	client.stop();
+}
+
+void ServerComm::setID(unsigned long _id)
+{
+	id = _id;
 }
 
 

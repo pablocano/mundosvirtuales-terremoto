@@ -5,17 +5,26 @@
 #include "../utils/network/ServerTCP.h"
 
 #include <vector>
+#include <memory>
 
 #define FILE_REMOTE_DATA_CLIENTS "RemotesIDs.dat"
 
 class ServerAlarm;
+
+struct PairClientData
+{
+	RemoteClientData m_data;
+	std::shared_ptr<ClientTCP> m_lpClientTCP;
+
+	PairClientData() : m_data(), m_lpClientTCP(nullptr) {}
+};
 
 class ServerSensors : public ServerTCP
 {
 private:
 
 	ListSensors m_listSensors;
-	std::vector<RemoteClientData> m_listRemoteClientData;
+	std::vector<PairClientData> m_listRemoteClientData;
 	ResponseSensors m_serverSensors;
 
 	ServerSensors(const ServerSensors&) = delete;

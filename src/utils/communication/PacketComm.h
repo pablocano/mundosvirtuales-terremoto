@@ -29,7 +29,7 @@
 /// <summary>
 /// Enum that contain different commands.
 /// </summary>
-typedef enum _Command
+enum Command
 {
 	ALIVE			   = 0x00, /* Alive command. */
 	EARTHQUAKE		   = 0x01, /* This command is sent from the client when the sensors are activated due to an earthquake. */
@@ -38,7 +38,7 @@ typedef enum _Command
 	// Adding new command from bellow ...
 	ACKNOWLEDGE_SENSOR = 0x04, /* This command starts exchange data between clients and server. */
 	RENEW_DEVICE_ID	   = 0x05  /* This command allows to renew device identification. */
-} Command;
+};
 
 /// <summary>
 /// Header of Communication Packet.
@@ -48,8 +48,8 @@ STRUCT_PACKET HeaderPacketComm
 	uint16_t  version;		/* Version of packet. */
 	uint8_t   m_command;	/* Command */
 	uint8_t   m_flags;		/* Flags */
-	uint32_t  m_idDevice;	/* Identificator for Response Packet. */
-	uint32_t  m_idResponse;	/* Identificator for Response Packet. */
+	uint32_t  m_idDevice;	/* Identification of sensor or client. */
+	uint32_t  m_idResponse;	/* Identification for Response Packet. */
 
 	/// <summary>
 	/// Constructor
@@ -131,7 +131,7 @@ STRUCT_PACKET PacketComm
 	/// Gets index of current packet.
 	/// </summary>
 	/// <returns></returns>
-	uint32_t getIndexRequest()
+	uint32_t getIndexRequest() const
 	{
 		static uint32_t index = 0;
 		return ++index;
@@ -140,12 +140,12 @@ STRUCT_PACKET PacketComm
 	/// <summary>
 	/// Packing Communication Packet.
 	/// </summary>
-	/// <returns>Returns HeaderPacket.</returns>
-	PacketComm packing()
+	/// <returns>Returns.</returns>
+	PacketComm packing() const
 	{
 		PacketComm p;
-		m_header.m_idResponse = m_header.m_idResponse ? m_header.m_idResponse : getIndexRequest();
 		p = *this;
+		p.m_header.m_idResponse = m_header.m_idResponse ? m_header.m_idResponse : getIndexRequest();
 
 #ifdef COMM_ENCRYPTED
 		static uint32_t key[4] = KEY_CRYPT;

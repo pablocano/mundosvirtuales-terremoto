@@ -13,9 +13,10 @@ class ClientTCP : public Runnable, public std::enable_shared_from_this<ClientTCP
 {
 protected:
 	SocketClientTcp m_tcpComm; /* Socket TCP. */
-	std::function< void ( std::shared_ptr<ClientTCP> ) > m_closeClientFn; /* Callback function when the communication finishes. */
 	ResponsePacket* m_lpResponsePacket; /* Pointer to class responding to messages (packet). */
+	std::function< void ( std::shared_ptr<ClientTCP> ) > m_closeClientFn; /* Callback function when the communication finishes. */
 	ClientID m_clientID; /* Identification of client. */
+	bool m_wasReplaced; /* This flag is true when this client is replaced for another client. */
 
 	void run(); /* Implement virtual function. */
 
@@ -57,12 +58,26 @@ public:
 	bool sendMessage(const char* message, unsigned int size);
 
 	/// <summary>
+	/// Send packet.
+	/// </summary>
+	/// <param name="packet">Packet.</param>
+	/// <returns>Returns true if the packet was sent successful, false otherwise.</returns>
+	bool sendMessage(const PacketComm& packet);
+
+	/// <summary>
 	/// Receive message.
 	/// </summary>
 	/// <param name="message">Buffer message.</param>
 	/// <param name="size">Size buffer message.</param>
 	/// <returns>Returns true if the message was received successful, false otherwise.</returns>
 	bool recvMessage(char* message, unsigned int size);
+
+	/// <summary>
+	/// Receive packet.
+	/// </summary>
+	/// <param name="packet">packet.</param>
+	/// <returns>Returns true if the message was received successful, false otherwise.</returns>
+	bool recvMessage(PacketComm &packet);
 
 	/// <summary>
 	/// Setter of identification of remote client.
@@ -74,4 +89,25 @@ public:
 	/// Getter Identification of client.
 	/// </summary>
 	const ClientID getClientID() const { return m_clientID; }
+
+	/// <summary>
+	/// Returns true if this client was replaced for another.
+	/// </summary>
+	/// <returns></returns>
+	bool getWasReplaced() const;
+
+	/// <summary>
+	/// Sets true when this client is replaced for another.
+	/// </summary>
+	/// <param name="wasReplaced"></param>
+	void setwasReplace(bool wasReplaced);
+
+protected:
+
+	/// <summary>
+	/// Close communication.
+	/// </summary>
+	void closeComm();
+
+	virtual void preStop() override; /* Closing communications. */
 };

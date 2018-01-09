@@ -17,7 +17,7 @@ public:
 	///<summary>
 	/// The different types of messages
 	///</summary>
-	enum MessageType
+	enum Command
 	{
 		ALIVE			   = 0x00, /* Alive command. */
 		EARTHQUAKE		   = 0x01, /* This command is sent from the client when the sensors are activated due to an earthquake. */
@@ -30,20 +30,23 @@ public:
 
 	struct MessageHeader
 	{
-		bool isValid();
-		short version;
-		byte type;
-		byte message;
-		unsigned long id;
-		unsigned long messageId;
-		float data;
+		// Header
+		short  version;				 /* Version of packet. */
+		byte   m_command;			 /* Command */
+		byte   m_flags;				 /* Flags */
+		unsigned long  m_idDevice;	 /* Identification of sensor or client. */
+		unsigned long  m_idResponse; /* Identification for Response Packet. */
+		// Payload
+		float m_payload;				 /* Payload of packet. */
+		
+		bool isValid() { return ServerComm::version == version; }
 	};
 
 	///<summary>
 	/// Constructor of the class
 	///</summary>
 	/// <param name="_id">The unique id of this device.</param>
-	ServerComm(unsigned long _id) : id(_id), messageId(0L){}
+	ServerComm(unsigned long _id = -1) : id(id), messageId(0L){}
 	
 	///<summary>
 	/// Init the ethernet communications
@@ -62,23 +65,26 @@ public:
 	///<summary>
 	/// Send a message to the server
 	///</summary>
-	/// <param name="type">The type of message to send.</param>
+	/// <param name="command">The type of message to send.</param>
 	/// <param name="data">Custom data to send.</param>
 	/// <param name="size">The size of the custom data.</param>
 	/// <returns>If the message was send</returns>
-	bool SendMessage(MessageType type, float* ratio = 0);
+	bool SendMessage(Command command, float* ratio = 0);
 
 	///<summary>
 	/// Receive a message from the server
 	///</summary>
 	/// <param name="inMessage">The message received.</param>
+	/// <param name="nonBlock">Non Blocking.</param>
 	/// <returns>If a message was receive</returns>
-	bool ReceiveMessage(MessageHeader& inMessage);
+	bool ReceiveMessage(MessageHeader& inMessage, bool nonBlock = true);
 	
 	
 	bool Connected();
 	
 	void StopClient();
+	
+	void setID(unsigned long _id);
 	
 private:
 	
@@ -90,7 +96,7 @@ private:
 	///<summary>
 	/// The unique id of this device
 	///</summary>
-	unsigned long id;
+	long id;
 
 	///<summary>
 	/// The unique id of the next message

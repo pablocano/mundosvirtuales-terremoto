@@ -3,9 +3,16 @@
 #include <Ethernet.h>
 #include <ServerComm.h>
 #include <MsTimer2.h>
+#include <EEPROM.h>
  
 #define DEVICE (0x53)    //ADXL345 device address
 #define TO_READ (6)        //num of bytes we are going to read each time (two bytes for each axis)
+
+//#define SERVER_ADDR "plant.mundos-virtuales.com"
+#define SERVER_ADDR "192.168.1.140"
+
+#define MEM_ADDR_ID_DEVICE 0
+#define WAIT_RESPONSE 150
  
 byte buff[TO_READ] ;    //6 bytes buffer for saving data read from the device
 //char str[512];                      //string buffer to transform data before sending it to the serial port
@@ -21,10 +28,12 @@ int total1 = 0;
 int total2 = 0;
 int average = 0;
 
-byte mac[] = { 0x0E, 0xAD, 0xBE, 0xEF, 0xFE, 0xE1 };
+byte mac[] = { 0x0E, 0xAD, 0x00, 0x00, 0x00, 0x00 };
 int port = 4322;
 
-ServerComm comm(1L);
+long idDevice = 0L;
+
+ServerComm comm;
 
 void alive()
 {
@@ -35,6 +44,11 @@ void alive()
 
 void setup()
 {
+  // Reset id
+  // EEPROM.put(MEM_ADDR_ID_DEVICE, -1L);
+
+  EEPROM.get(MEM_ADDR_ID_DEVICE, idDevice); // Recovery identification of device
+  
   Wire.begin();        // join i2c bus (address optional for master)
   Serial.begin(9600);  // start serial for output
 
@@ -170,18 +184,99 @@ void readFrom(int device, byte address, int num, byte buff[])
 
 void connectToServer()
 {
+  // Generate Mac from identification of device
+  mac[2] = (byte) ((idDevice >> 24) & 0xFF);
+  mac[3] = (byte) ((idDevice >> 16) & 0xFF);
+  mac[4] = (byte) ((idDevice >>  8) & 0xFF);
+  mac[5] = (byte) ((idDevice >>  0) & 0xFF);
+    
   if(comm.Begin(mac))
   {
     Serial.println("DHCP connection success");
   }
   
   Serial.println("Connecting ...");
-  while(!comm.StartComm("plant.mundos-virtuales.com", port))
+  
+  while(true)
   {
-    Serial.println("Failed. Trying again ...");
-    delay(2000);
+    while(!comm.StartComm(SERVER_ADDR, port))
+    {
+      Serial.println("Failed. Trying again ...");
+      delay(2000);
+    }
+
+    if(ackServer())
+    {
+      break;
+    }
+    else
+    {
+      comm.StopClient();
+      delay(500);
+    }
   }
+  
   Serial.println("Connection Established");
+
+}
+
+bool ackServer()
+{
+  ServerComm::MessageHeader inMessage;
+
+  // Waiting for response
+  delay(WAIT_RESPONSE);
+  Serial.println("Ack Server");
+  // Receive response from server
+  if(comm.ReceiveMessage(inMessage, false) && inMessage.m_command == ServerComm::ACKNOWLEDGE_SENSOR)
+  {
+    Serial.print("id: ");
+    Serial.println(idDevice, DEC);
+
+    comm.setID(idDevice); // Setting identification
+
+    if(comm.SendMessage(ServerComm::ACKNOWLEDGE_SENSOR))
+    {
+      if(isValidID(idDevice))
+      {
+        return true;
+      }
+      else
+      {
+        Serial.println("Renew Identification.");
+        // Waiting for response
+        delay(WAIT_RESPONSE);
+        // Receive response from server
+        if(comm.ReceiveMessage(inMessage, false) && inMessage.m_command == ServerComm::RENEW_DEVICE_ID)
+        {
+          idDevice = (long) inMessage.m_payload; // TODO: copy memory
+          Serial.print("Renew id: ");
+          Serial.println(idDevice, DEC);
+          if(isValidID(idDevice))
+          {
+            comm.setID(idDevice); // Setting identification
+            EEPROM.put(MEM_ADDR_ID_DEVICE, idDevice); // Store identification on EEPROM
+            
+            Serial.println("The identification of sensor was successful renewed.");
+
+            Serial.println("Send confirmation renew packet.");
+            return comm.SendMessage(ServerComm::ACKNOWLEDGE_SENSOR);
+          }
+        }
+        else
+        {
+          Serial.println("Problem receive renew packet.");
+        }
+      }
+    } 
+  }
+
+  return false;
+}
+
+bool isValidID(long id)
+{
+  return id > 0L;
 }
 
 

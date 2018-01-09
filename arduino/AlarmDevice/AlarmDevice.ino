@@ -5,6 +5,9 @@
 byte mac[] = { 0x0E, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 int port = 4323;
 
+//#define SERVER_ADDR "plant.mundos-virtuales.com"
+#define SERVER_ADDR "192.168.1.140"
+
 ServerComm::MessageHeader inMessage;
 
 ServerComm comm(3L);
@@ -36,7 +39,7 @@ void loop()
   digitalWrite(13, LOW);
   if(comm.ReceiveMessage(inMessage))
   {
-    if(inMessage.type == (byte)ServerComm::EARTHQUAKE)
+    if(inMessage.m_command == (byte)ServerComm::EARTHQUAKE)
     {
       Serial.println("Earthquake detected");
       digitalWrite(13, HIGH);
@@ -68,7 +71,7 @@ void connectToServer()
   }
   
   Serial.println("Connecting ...");
-  while(!comm.StartComm("plant.mundos-virtuales.com", port))
+  while(!comm.StartComm(SERVER_ADDR, port))
   {
     Serial.println("Failed. Trying again ...");
     delay(2000);

@@ -3,17 +3,27 @@
 #include "ClientTCP.h"
 #include "ClientTCP.h"
 #include "ClientTCP.h"
+#include "ClientTCP.h"
+#include "ClientTCP.h"
+#include "ClientTCP.h"
+#include "ClientTCP.h"
+#include "ClientTCP.h"
+#include "ClientTCP.h"
+#include "ClientTCP.h"
+#include "ClientTCP.h"
+#include "ClientTCP.h"
+#include "ClientTCP.h"
 #include "../logger/Logger.h"
 
 #include <iostream>
 
 ClientTCP::ClientTCP(const char* ip, int port, ResponsePacket* lpProcessPacket, std::function<void(std::shared_ptr<ClientTCP>)> closeClientFn, bool isDetach) : Runnable(isDetach),
-m_tcpComm(ip, port), m_lpResponsePacket(lpProcessPacket), m_closeClientFn(closeClientFn)
+m_tcpComm(ip, port), m_lpResponsePacket(lpProcessPacket), m_closeClientFn(closeClientFn), m_clientID(), m_wasReplaced(false)
 {
 }
 
 ClientTCP::ClientTCP(int socket, ResponsePacket* lpProcessPacket, std::function<void(std::shared_ptr<ClientTCP>)> closeClientFn, bool isDetach) : Runnable(isDetach),
-m_tcpComm(socket), m_lpResponsePacket(lpProcessPacket), m_closeClientFn(closeClientFn)
+m_tcpComm(socket), m_lpResponsePacket(lpProcessPacket), m_closeClientFn(closeClientFn), m_clientID(), m_wasReplaced(false)
 {
 }
 
@@ -28,14 +38,63 @@ bool ClientTCP::sendMessage(const char* message, unsigned int size)
 	return m_tcpComm.send(message, size);
 }
 
+bool ClientTCP::sendMessage(const PacketComm& packet)
+{
+	if (packet.isValid())
+	{
+		PacketComm packetTCP = packet.packing();
+
+		return m_tcpComm.send((char *)&packetTCP, packetTCP.size());
+	}
+	
+	return false;
+}
+
 bool ClientTCP::recvMessage(char* message, unsigned int size)
 {
 	return m_tcpComm.receive(message, size);
 }
 
+bool ClientTCP::recvMessage(PacketComm& packet)
+{
+	if(m_tcpComm.receive((char*)&packet, PacketComm::size()))
+	{
+#ifdef COMM_ENCRYPTED
+		PacketComm packetReceive = PacketComm::unpacking(packet);
+#else
+		PacketComm packetReceive = packet;
+#endif
+		packet = packetReceive;
+
+		return packet.isValid();
+	}
+
+	return false;
+}
+
 void ClientTCP::setClientID(ClientID clientID)
 {
 	m_clientID = clientID;
+}
+
+bool ClientTCP::getWasReplaced() const
+{
+	return m_wasReplaced;
+}
+
+void ClientTCP::setwasReplace(bool wasReplaced)
+{
+	m_wasReplaced = wasReplaced;
+}
+
+void ClientTCP::closeComm()
+{
+	m_tcpComm.closeSocket();
+}
+
+void ClientTCP::preStop()
+{
+	closeComm();
 }
 
 void ClientTCP::run()

@@ -27,7 +27,7 @@ public:
 	/// <summary>
 	/// Stops thread.
 	/// </summary>
-	void stop() { m_stop = true; if (!m_isDetach) m_thread.join(); }
+	void stop() { preStop(); m_stop = true; if (!m_isDetach) m_thread.join(); postStop(); }
 
 	/// <summary>
 	/// Starts thread.
@@ -42,6 +42,16 @@ protected:
 
 	std::atomic<bool> m_stop; /* Whether this flag is true, the thread gets stop. */
 	std::atomic<bool> m_isDetach; /* Whether this flag is true, the thread detaches of parent thread. */
+
+	/// <summary>
+	/// This function is executed after thread was stopped.
+	/// </summary>
+	virtual void postStop() {}
+
+	/// <summary>
+	/// This function is executed before thread will start to stop.
+	/// </summary>
+	virtual void preStop() {}
 
 private:
 	std::thread m_thread; /* Thread */

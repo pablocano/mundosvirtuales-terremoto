@@ -1,18 +1,26 @@
 #include "ServerSensors.h"
+#include "../utils/logger/Logger.h"
 #include "../utils/platform/SystemCall.h"
 
 #include <fstream>
+#include <string>
 
 ServerSensors::ServerSensors() : m_listSensors(), m_listRemoteClientData(),  m_serverSensors(), ServerTCP(&m_serverSensors)
 {
 	std::fstream fileRemoteIDs;
 	fileRemoteIDs.open(FILE_REMOTE_DATA_CLIENTS, std::ios::in | std::ios::binary);
 
-	while (fileRemoteIDs.eof())
+	if (fileRemoteIDs.good())
 	{
-		RemoteClientData dataReg;
-		fileRemoteIDs.read((char*)&dataReg, sizeof(RemoteClientData));
-		m_listRemoteClientData.push_back(dataReg);
+		fileRemoteIDs.seekg(0, std::ios::beg);
+
+		while (!fileRemoteIDs.eof())
+		{
+			PairClientData dataReg;
+			fileRemoteIDs.read((char*)&dataReg.m_data, sizeof(RemoteClientData));
+
+			m_listRemoteClientData.push_back(dataReg);
+		}
 	}
 
 	fileRemoteIDs.close();
@@ -29,23 +37,26 @@ const ListSensors& ServerSensors::getListSensors() const
 
 RemoteID ServerSensors::getNewRemoteID() const
 {
-	RemoteID id = m_listRemoteClientData.end()->m_remoteID;
+	RemoteID id = 1;
 	
-	bool validID;
+	bool validID = true;
 
-	do
+	if (!m_listRemoteClientData.empty())
 	{
-		validID = true;
-		++id;
-		for (auto it = m_listRemoteClientData.begin(); it != m_listRemoteClientData.end(); ++it)
+		while (validID)
 		{
-			if (it->m_remoteID == id)
+			validID = false;
+			++id;
+			for (auto it = m_listRemoteClientData.begin(); it != m_listRemoteClientData.end(); ++it)
 			{
-				validID = false;
-				break;
+				if (it->m_data.m_remoteID == id)
+				{
+					validID = true;
+					break;
+				}
 			}
 		}
-	} while (validID);
+	}
 
 	return id;
 }
@@ -59,54 +70,57 @@ std::shared_ptr<ClientTCP> ServerSensors::addClient(int socketClient)
 		// Getting the next ID in list of sensors.
 		LocalID newID = ServerSensors::Instance()->m_listSensors.getNextLocalID();
 
-		if (newID > 0) // Validating ID
+		if (newID >= 0) // Validating ID
 		{
 			bool validRemoteID = false;
+			bool isNewRemoteClient = false;
+			int posLastClient = -1;
+			RemoteID remoteID = -1;
 
 			// Send Acknowledge command
+			LOGGER_DEBUG("ServerSensor", "Send Acknowledge");
 			PacketComm packetAck(Command::ACKNOWLEDGE_SENSOR);
-			lpClient->sendMessage((const char*)&packetAck, sizeof(PacketComm));
+			lpClient->sendMessage(packetAck);
 
 			// Receive Response
 			PacketComm packetRecv;
-			if (lpClient->recvMessage((char*)&packetRecv, sizeof(PacketComm)))
+			if (lpClient->recvMessage(packetRecv))
 			{
+				LOGGER_DEBUG("ServerSensor", "Recv Response Acknowledge");
 				if (packetRecv.m_header.m_command == Command::ACKNOWLEDGE_SENSOR)
 				{
-					if (packetRecv.m_header.m_idDevice < 0) /* Validate remote identification. */
+					remoteID = (RemoteID) packetRecv.m_header.m_idDevice;
+					LOGGER_DEBUG("ServerSensor", "Recv remote id: " + std::to_string(remoteID));
+					if (remoteID < 0) /* Validate remote identification. */
 					{
 						PacketComm packetRenew(Command::RENEW_DEVICE_ID);
 
 						// Generate new identification.
-						packetRenew.m_payload = (float) getNewRemoteID();
+						remoteID = getNewRemoteID();
+
+						// Store new identification in payload of packet
+						packetRenew.m_payload = (float) remoteID; // TODO: copy memory
 						
 						// Send packet with new identification.
-						if (lpClient->sendMessage((const char*)&packetRenew, sizeof(PacketComm)))
+						LOGGER_DEBUG("ServerSensor", "Send renew message");
+						if (lpClient->sendMessage(packetRenew))
 						{
 							// Receive Response
-							if (lpClient->recvMessage((char*)&packetRecv, sizeof(PacketComm)))
+							if (lpClient->recvMessage(packetRecv) && packetRecv.m_header.m_command == Command::ACKNOWLEDGE_SENSOR)
 							{
+								LOGGER_DEBUG("ServerSensor", "Recv correct response renew, ID: " + std::to_string(packetRecv.m_header.m_idDevice));
 								// Validate if the new remote identification was changed successful.  
-								if (packetRecv.m_header.m_idDevice > 0)
+								if (packetRecv.m_header.m_idDevice == remoteID)
 								{
+									isNewRemoteClient = true;
 									validRemoteID = true;
-									
-									// Create register
-									RemoteClientData dataReg;
-									dataReg.m_createTimestamp = SystemCall::getCurrentSystemTime();
-									dataReg.m_lat = -33.4381664;
-									dataReg.m_lng = -70.6474686;
-									dataReg.m_remoteID = (RemoteID) packetRecv.m_header.m_idDevice;
 
-									// Save register in file.
-									std::fstream fileRemoteIDs;
-									fileRemoteIDs.open(FILE_REMOTE_DATA_CLIENTS, std::ios::binary | std::ios::app);
-									fileRemoteIDs.write((const char*)&dataReg, sizeof(RemoteClientData));
-									fileRemoteIDs.close();
-
-									// Save register in list
-									m_listRemoteClientData.push_back(dataReg);
+									LOGGER_LOG("ServerSensor", "New sensor was added, Remote ID: " + std::to_string(remoteID));
 								}
+							}
+							else
+							{
+								LOGGER_DEBUG("ServerSensor", "Problem Recv Response renew");
 							}
 						}
 					}
@@ -114,12 +128,70 @@ std::shared_ptr<ClientTCP> ServerSensors::addClient(int socketClient)
 					{
 						validRemoteID = true;
 					}
+
+					// Validate if the remoteid is already in server.
+					if (validRemoteID)
+					{
+						for (int i = 0; i < m_listRemoteClientData.size(); ++i)
+						{
+							if (remoteID == m_listRemoteClientData.at(i).m_data.m_remoteID)
+							{
+								std::shared_ptr<ClientTCP> lastClient = m_listRemoteClientData[i].m_lpClientTCP;
+								if (lastClient)
+								{
+									// Close last client
+									lastClient->stop();
+									newID = lastClient->getClientID().getLocalID();
+									lastClient->setwasReplace(true);
+									LOGGER_LOG("ServerSensor", "Remote ID already exist.");
+								}
+								else
+								{
+									// Reserve space for
+									ServerSensors::Instance()->m_listSensors.reserveSpaceNewSensor();
+								}
+
+								m_listRemoteClientData[i].m_lpClientTCP = lpClient;
+
+								LOGGER_LOG("ServerSensor", "Sensor ID: " + std::to_string(remoteID) + " was added successful (LOCAL ID " + std::to_string(newID) + ")");
+								lpClient->setClientID(ClientID(newID, remoteID));
+
+								return lpClient;
+							}
+						}
+					}
 				}
+			}
+			else
+			{
+				LOGGER_LOG("ServerSensor", "Error Receive Message Acknowledge");
 			}
 
 			if (validRemoteID && ServerSensors::Instance()->m_listSensors.reserveSpaceNewSensor())
 			{
-				lpClient->setClientID(ClientID(newID));
+				lpClient->setClientID(ClientID(newID, remoteID));
+
+				// Create register
+				PairClientData dataReg;
+				dataReg.m_data.m_createTimestamp = SystemCall::getCurrentSystemTime();
+				dataReg.m_data.m_lat = -33.4381664;
+				dataReg.m_data.m_lng = -70.6474686;
+				dataReg.m_data.m_remoteID = (RemoteID)packetRecv.m_header.m_idDevice;
+				dataReg.m_lpClientTCP = lpClient;
+
+				if (isNewRemoteClient)
+				{
+					// Save register in file.
+					std::fstream fileRemoteIDs;
+					fileRemoteIDs.open(FILE_REMOTE_DATA_CLIENTS, std::ios::binary | std::ios::app);
+					fileRemoteIDs.write((const char*)&dataReg.m_data, sizeof(RemoteClientData));
+					fileRemoteIDs.close();
+
+					// Save register in list
+					m_listRemoteClientData.push_back(dataReg);
+				}
+
+				LOGGER_LOG("ServerSensor", "Sensor ID: " + std::to_string(remoteID) + " was added successful (LOCAL ID " + std::to_string(newID) + ")");
 
 				return lpClient;
 			}
@@ -128,6 +200,7 @@ std::shared_ptr<ClientTCP> ServerSensors::addClient(int socketClient)
 
 		// Close thread and socket.
 		lpClient->stop();
+		LOGGER_LOG("ServerSensor", "Problem added new remote sensor");
 	}
 
 	return nullptr;
@@ -137,7 +210,10 @@ void ServerSensors::remove_client_from_queue(std::shared_ptr<ClientTCP> lpClient
 {
 	ServerTCP::remove_client_from_queue(lpClient);
 
-	LocalID localID = lpClient->getClientID().getLocalID();
-
-	ServerSensors::Instance()->m_listSensors.deleteSpaceSensor(localID);
+	if (!lpClient->getWasReplaced())
+	{
+		// Free up space if the client was not replaced
+		LocalID localID = lpClient->getClientID().getLocalID();
+		ServerSensors::Instance()->m_listSensors.deleteSpaceSensor(localID);
+	}
 }

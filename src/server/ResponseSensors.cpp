@@ -16,7 +16,7 @@ ResponseSensors::~ResponseSensors()
 PacketComm ResponseSensors::process_packet(const ClientID clientID, PacketComm packet, SocketClientTcp& tcpComm)
 {
 	PacketComm responsePacket;
-	std::string p = clientID.toString() + ":";
+	std::string p = "Sensor" + clientID.toString() + ": ";
 
 	switch (packet.m_header.m_command)
 	{
@@ -33,7 +33,7 @@ PacketComm ResponseSensors::process_packet(const ClientID clientID, PacketComm p
 	case Command::ALIVE:
 		LOGGER_LOG("ResponseSensors", p + "ALIVE");
 		break;
-	case Command::ACKNOWLEDGE_SENSOR:
+	case Command::ACKNOWLEDGE_CLIENT:
 		LOGGER_LOG("ResponseSensors", p + "ACKNOWLEDGE");
 		{
 			// Close connection if exist remote client on list of sensors.

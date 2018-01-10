@@ -6,7 +6,7 @@
 #include <EEPROM.h>
  
 #define DEVICE (0x53)    //ADXL345 device address
-#define TO_READ (6)        //num of bytes we are going to read each time (two bytes for each axis)
+#define TO_READ (6)      //num of bytes we are going to read each time (two bytes for each axis)
 
 //#define SERVER_ADDR "plant.mundos-virtuales.com"
 #define SERVER_ADDR "192.168.1.140"
@@ -20,8 +20,8 @@ byte buff[TO_READ] ;    //6 bytes buffer for saving data read from the device
 const int numReading1 = 10; //LTA
 const int numReading2 = 8; //STA
 const int ledPin = 13; // (buzzer)
-int reading1[numReading1];
-int reading2[numReading2];
+int reading1[numReading1] = {}; // Initialize to zero
+int reading2[numReading2] = {}; // Initialize to zero
 int readIndex1 = 0;
 int readIndex2 = 0;
 int total1 = 0;
@@ -38,29 +38,34 @@ ServerComm comm;
 void alive()
 {
     Ethernet.maintain();
-    comm.SendMessage(ServerComm::ALIVE);
-    Serial.println("Sending alive");
+    if(comm.SendMessage(ServerComm::ALIVE))
+    {
+      Serial.println("Sending alive");
+    }
 }
 
 void setup()
 {
-  // Reset id
+  // Uncomment below line for reseting identification device
   // EEPROM.put(MEM_ADDR_ID_DEVICE, -1L);
 
-  EEPROM.get(MEM_ADDR_ID_DEVICE, idDevice); // Recovery identification of device
+  // Recovery identification of device
+  EEPROM.get(MEM_ADDR_ID_DEVICE, idDevice);
   
   Wire.begin();        // join i2c bus (address optional for master)
   Serial.begin(9600);  // start serial for output
 
-  Serial.println("Demo started");
+  Serial.println("Sensor demo started");
 
   connectToServer();
   
   Serial.println("Initializing sensors"); 
-  for (int thisReading1 = 0; thisReading1 < numReading1; thisReading1++) {
+  for (int thisReading1 = 0; thisReading1 < numReading1; thisReading1++)
+  {
     reading1[thisReading1] = 0;
   }
-  for (int thisReading2 = 0; thisReading2 < numReading2; thisReading2++) {
+  for (int thisReading2 = 0; thisReading2 < numReading2; thisReading2++)
+  {
     reading2[thisReading2] = 0;
   }
  
@@ -126,7 +131,7 @@ void loop()
 
   if(!comm.Connected())
   {
-    Serial.println("Reconnecting");
+    Serial.println("Reconnecting ...");
     comm.StopClient();
     connectToServer();
   }
@@ -139,10 +144,11 @@ void loop()
     {
       Serial.println("Message sent successfully");
     }
-    delay(1000);
+    delay(1000); // TODO: this is necessary?
     //software_Reset();
   } 
-  else {
+  else
+  {
     digitalWrite(ledPin, LOW);
   }
 }
@@ -228,14 +234,14 @@ bool ackServer()
   delay(WAIT_RESPONSE);
   Serial.println("Ack Server");
   // Receive response from server
-  if(comm.ReceiveMessage(inMessage, false) && inMessage.m_command == ServerComm::ACKNOWLEDGE_SENSOR)
+  if(comm.ReceiveMessage(inMessage, false) && inMessage.m_command == ServerComm::ACKNOWLEDGE_CLIENT)
   {
     Serial.print("id: ");
     Serial.println(idDevice, DEC);
 
     comm.setID(idDevice); // Setting identification
 
-    if(comm.SendMessage(ServerComm::ACKNOWLEDGE_SENSOR))
+    if(comm.SendMessage(ServerComm::ACKNOWLEDGE_CLIENT))
     {
       if(isValidID(idDevice))
       {
@@ -260,7 +266,7 @@ bool ackServer()
             Serial.println("The identification of sensor was successful renewed.");
 
             Serial.println("Send confirmation renew packet.");
-            return comm.SendMessage(ServerComm::ACKNOWLEDGE_SENSOR);
+            return comm.SendMessage(ServerComm::ACKNOWLEDGE_CLIENT);
           }
         }
         else

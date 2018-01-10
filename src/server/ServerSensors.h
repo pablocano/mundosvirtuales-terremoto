@@ -7,7 +7,7 @@
 #include <vector>
 #include <memory>
 
-#define FILE_REMOTE_DATA_CLIENTS "RemotesIDs.dat"
+#define FILE_REMOTE_DATA_SENSORS "RemotesIDs.dat"
 
 class ServerAlarm;
 

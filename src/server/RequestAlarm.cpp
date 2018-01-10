@@ -26,7 +26,7 @@ void RequestAlarm::run()
 		{
 			for (int i = 0; i < totalSensors; ++i)
 			{
-				if ((timestamp - listSensors[i].m_timestamp) < 2000)
+				if ((timestamp - listSensors[i].m_timestamp) < 5000)
 				{
 					if (listSensors[i].m_confidence > 0.5f)
 					{

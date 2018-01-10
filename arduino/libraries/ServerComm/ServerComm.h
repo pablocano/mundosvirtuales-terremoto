@@ -24,7 +24,7 @@ public:
 		WRONG_PACKET	   = 0x02, /* This command is returned when the receive packet has wrong format. */
 		CLOSE_CONNECTION   = 0x03, /* This command close connection between client and server. */
 		// Adding new command from bellow ...
-		ACKNOWLEDGE_SENSOR = 0x04, /* This command starts exchange data between clients and server. */
+		ACKNOWLEDGE_CLIENT = 0x04, /* This command starts exchange data between clients and server. */
 		RENEW_DEVICE_ID	   = 0x05  /* This command allows to renew device identification. */
 	};
 

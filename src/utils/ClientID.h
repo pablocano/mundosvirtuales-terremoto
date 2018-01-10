@@ -110,6 +110,6 @@ public:
 
 	std::string toString() const
 	{
-		return "Sensor<" + std::to_string(m_remoteID) + ">";
+		return "<" + std::to_string(m_remoteID) + ">";
 	}
 };

@@ -8,8 +8,9 @@
 ServerSensors::ServerSensors() : m_listSensors(), m_listRemoteClientData(),  m_serverSensors(), ServerTCP(&m_serverSensors)
 {
 	std::fstream fileRemoteIDs;
-	fileRemoteIDs.open(FILE_REMOTE_DATA_CLIENTS, std::ios::in | std::ios::binary);
+	fileRemoteIDs.open(FILE_REMOTE_DATA_SENSORS, std::ios::in | std::ios::binary);
 
+	// Loading registered clients from file.
 	if (fileRemoteIDs.good())
 	{
 		fileRemoteIDs.seekg(0, std::ios::beg);
@@ -18,7 +19,7 @@ ServerSensors::ServerSensors() : m_listSensors(), m_listRemoteClientData(),  m_s
 		{
 			PairClientData dataReg;
 			fileRemoteIDs.read((char*)&dataReg.m_data, sizeof(RemoteClientData));
-
+			// Loading one register
 			m_listRemoteClientData.push_back(dataReg);
 		}
 	}
@@ -37,12 +38,15 @@ const ListSensors& ServerSensors::getListSensors() const
 
 RemoteID ServerSensors::getNewRemoteID() const
 {
+	// A valid remote id is always positive.
 	RemoteID id = 1;
 	
 	bool validID = true;
 
+	// Validate if the list of remote client is empty
 	if (!m_listRemoteClientData.empty())
 	{
+		// looking for a new valid identification 
 		while (validID)
 		{
 			validID = false;
@@ -79,7 +83,7 @@ std::shared_ptr<ClientTCP> ServerSensors::addClient(int socketClient)
 
 			// Send Acknowledge command
 			LOGGER_DEBUG("ServerSensor", "Send Acknowledge");
-			PacketComm packetAck(Command::ACKNOWLEDGE_SENSOR);
+			PacketComm packetAck(Command::ACKNOWLEDGE_CLIENT);
 			lpClient->sendMessage(packetAck);
 
 			// Receive Response
@@ -87,7 +91,7 @@ std::shared_ptr<ClientTCP> ServerSensors::addClient(int socketClient)
 			if (lpClient->recvMessage(packetRecv))
 			{
 				LOGGER_DEBUG("ServerSensor", "Recv Response Acknowledge");
-				if (packetRecv.m_header.m_command == Command::ACKNOWLEDGE_SENSOR)
+				if (packetRecv.m_header.m_command == Command::ACKNOWLEDGE_CLIENT)
 				{
 					remoteID = (RemoteID) packetRecv.m_header.m_idDevice;
 					LOGGER_DEBUG("ServerSensor", "Recv remote id: " + std::to_string(remoteID));
@@ -106,7 +110,7 @@ std::shared_ptr<ClientTCP> ServerSensors::addClient(int socketClient)
 						if (lpClient->sendMessage(packetRenew))
 						{
 							// Receive Response
-							if (lpClient->recvMessage(packetRecv) && packetRecv.m_header.m_command == Command::ACKNOWLEDGE_SENSOR)
+							if (lpClient->recvMessage(packetRecv) && packetRecv.m_header.m_command == Command::ACKNOWLEDGE_CLIENT)
 							{
 								LOGGER_DEBUG("ServerSensor", "Recv correct response renew, ID: " + std::to_string(packetRecv.m_header.m_idDevice));
 								// Validate if the new remote identification was changed successful.  
@@ -167,8 +171,10 @@ std::shared_ptr<ClientTCP> ServerSensors::addClient(int socketClient)
 				LOGGER_LOG("ServerSensor", "Error Receive Message Acknowledge");
 			}
 
+			// space in list of sensor is reserved if the remote identification is valid.   
 			if (validRemoteID && ServerSensors::Instance()->m_listSensors.reserveSpaceNewSensor())
 			{
+				// Setting identification in new client 
 				lpClient->setClientID(ClientID(newID, remoteID));
 
 				// Create register
@@ -183,7 +189,7 @@ std::shared_ptr<ClientTCP> ServerSensors::addClient(int socketClient)
 				{
 					// Save register in file.
 					std::fstream fileRemoteIDs;
-					fileRemoteIDs.open(FILE_REMOTE_DATA_CLIENTS, std::ios::binary | std::ios::app);
+					fileRemoteIDs.open(FILE_REMOTE_DATA_SENSORS, std::ios::binary | std::ios::app);
 					fileRemoteIDs.write((const char*)&dataReg.m_data, sizeof(RemoteClientData));
 					fileRemoteIDs.close();
 
@@ -193,6 +199,7 @@ std::shared_ptr<ClientTCP> ServerSensors::addClient(int socketClient)
 
 				LOGGER_LOG("ServerSensor", "Sensor ID: " + std::to_string(remoteID) + " was added successful (LOCAL ID " + std::to_string(newID) + ")");
 
+				// Return new client
 				return lpClient;
 			}
 
@@ -208,6 +215,7 @@ std::shared_ptr<ClientTCP> ServerSensors::addClient(int socketClient)
 
 void ServerSensors::remove_client_from_queue(std::shared_ptr<ClientTCP> lpClient)
 {
+	// Remove client from queue.
 	ServerTCP::remove_client_from_queue(lpClient);
 
 	if (!lpClient->getWasReplaced())

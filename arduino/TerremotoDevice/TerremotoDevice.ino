@@ -8,8 +8,8 @@
 #define DEVICE (0x53)    //ADXL345 device address
 #define TO_READ (6)      //num of bytes we are going to read each time (two bytes for each axis)
 
-//#define SERVER_ADDR "plant.mundos-virtuales.com"
-#define SERVER_ADDR "192.168.1.140"
+#define SERVER_ADDR "plant.mundos-virtuales.com"
+//#define SERVER_ADDR "192.168.1.140"
 
 #define MEM_ADDR_ID_DEVICE 0
 #define WAIT_RESPONSE 150

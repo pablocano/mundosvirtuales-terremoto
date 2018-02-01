@@ -40,7 +40,8 @@ void alive()
     Ethernet.maintain();
     if(comm.SendMessage(ServerComm::ALIVE))
     {
-      Serial.println("Sending alive");
+      Serial.print("Sending alive, ID: ");
+      Serial.println(idDevice, DEC);
     }
 }
 

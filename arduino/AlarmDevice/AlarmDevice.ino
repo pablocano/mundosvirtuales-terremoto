@@ -3,8 +3,8 @@
 #include <MsTimer2.h>
 #include <EEPROM.h>
 
-//#define SERVER_ADDR "plant.mundos-virtuales.com"
-#define SERVER_ADDR "192.168.1.140"
+#define SERVER_ADDR "plant.mundos-virtuales.com"
+//#define SERVER_ADDR "192.168.1.140"
 
 #define MEM_ADDR_ID_DEVICE 0
 #define WAIT_RESPONSE 150
